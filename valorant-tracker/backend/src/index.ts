@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { ValorantService } from './valorantService.js'; // Import the service
+import { ValorantService } from './valorantService.js';
 
 dotenv.config();
 
@@ -12,25 +12,33 @@ app.use(cors());
 app.use(express.json());
 
 // --- ROUTES ---
+
 app.get('/', (req, res) => {
-    res.send('Valorant Tracker API is running! Go to /api/matches/na/TenZ/001 to test.');
+    res.send('Valorant Tracker API is running!');
 });
-// 1. Get Match History
-app.get('/api/matches/:name/:tag', async (req, res) => {
-  const { name, tag } = req.params;
+
+// 1. Get Match History (Now accepts :region)
+app.get('/api/matches/:region/:name/:tag', async (req, res) => {
+  // Extract region, name, and tag from the URL
+  const { region, name, tag } = req.params;
+  
   try {
-    const matches = await ValorantService.getMatchHistory(name, tag, "na");
+    // Pass the region variable instead of hardcoded "na"
+    const matches = await ValorantService.getMatchHistory(name, tag, region);
     res.json(matches);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch matches. Check player name/tag." });
+  } catch (error: any) {
+    // Send the actual error message from the Service (e.g. "Player not found")
+    // This helps the Frontend show the real reason for failure
+    res.status(500).json({ error: error.message || "Failed to fetch matches." });
   }
 });
 
-// 2. Get Player Rank (MMR)
-app.get('/api/rank/:name/:tag', async (req, res) => {
-  const { name, tag } = req.params;
+// 2. Get Player Rank (Now accepts :region)
+app.get('/api/rank/:region/:name/:tag', async (req, res) => {
+  const { region, name, tag } = req.params;
+  
   try {
-    const rankData = await ValorantService.getPlayerMMR(name, tag, "na");
+    const rankData = await ValorantService.getPlayerMMR(name, tag, region);
     res.json(rankData);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch rank." });

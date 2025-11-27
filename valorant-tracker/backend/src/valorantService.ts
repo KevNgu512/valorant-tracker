@@ -38,23 +38,23 @@ export class ValorantService {
       return response.data.data;
 
     } catch (error) {
-      // 4. Enhanced Error Logging (Crucial for debugging)
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError;
-        console.error(`❌ API Error [${axiosError.response?.status}]:`, axiosError.response?.data);
+        const errorData = axiosError.response?.data as any; // Cast to any to access custom fields
+
+        console.error(`❌ API Error [${axiosError.response?.status}]:`, errorData);
         
-        // Specific user feedback based on status code
+        // --- ADD THIS BLOCK ---
+        // Check for specific HenrikDev Error Code 24
+        if (errorData?.errors && errorData.errors[0]?.code === 24) {
+            throw new Error("NOT_ENOUGH_GAMES");
+        }
+        // ----------------------
+
         if (axiosError.response?.status === 404) {
           throw new Error(`Player ${name}#${tag} not found in region ${region.toUpperCase()}`);
         }
-        if (axiosError.response?.status === 403 || axiosError.response?.status === 401) {
-          throw new Error("API Key Invalid or missing.");
-        }
-        if (axiosError.response?.status === 429) {
-          throw new Error("Rate limit exceeded. Please wait a moment.");
-        }
-      } else {
-        console.error('❌ Unexpected Error:', error);
+        // ... other error checks ...
       }
       throw error;
     }
