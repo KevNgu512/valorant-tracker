@@ -1,34 +1,42 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { ValorantService } from './valorantService.js'; // Import the service
 
-// Load environment variables
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors()); // Allows your future frontend to talk to this server
-app.use(express.json()); // Allows parsing of JSON data
+app.use(cors());
+app.use(express.json());
 
-// 1. Basic Health Check Route
+// --- ROUTES ---
 app.get('/', (req, res) => {
-  res.json({ message: "Valorant Tracker API is running!" });
+    res.send('Valorant Tracker API is running! Go to /api/matches/na/TenZ/001 to test.');
 });
-
-// 2. Placeholder for Valorant Data
-app.get('/api/player/:name/:tag', (req, res) => {
-  // We will replace this with real API calls later
+// 1. Get Match History
+app.get('/api/matches/:name/:tag', async (req, res) => {
   const { name, tag } = req.params;
-  res.json({ 
-    player: `${name}#${tag}`, 
-    rank: "Platinum 2", 
-    last_match: "Win" 
-  });
+  try {
+    const matches = await ValorantService.getMatchHistory(name, tag, "na");
+    res.json(matches);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch matches. Check player name/tag." });
+  }
 });
 
-// Start Server
+// 2. Get Player Rank (MMR)
+app.get('/api/rank/:name/:tag', async (req, res) => {
+  const { name, tag } = req.params;
+  try {
+    const rankData = await ValorantService.getPlayerMMR(name, tag, "na");
+    res.json(rankData);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch rank." });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
