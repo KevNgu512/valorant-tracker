@@ -2,7 +2,13 @@ import axios, { AxiosError } from 'axios';
 import { APIResponse, MatchData } from './types.js';
 
 const BASE_URL = 'https://api.henrikdev.xyz/valorant';
-
+interface MMRHistoryPoint {
+  currenttier: number;
+  currenttier_patched: string; // e.g. "Gold 1"
+  ranking_in_tier: number;     // e.g. 50 (RR)
+  mmr_change_to_last_game: number; // e.g. +24
+  date: string;
+}
 export class ValorantService {
   /**
    * Fetches the last 5 matches for a player
@@ -83,4 +89,21 @@ export class ValorantService {
         return null;
     }
   }
+  /**
+   * Fetches player MMR (Rank) history data
+   */
+  static async getMMRHistory(name: string, tag: string, region: string) {
+  try {
+    const apiKey = process.env.VALORANT_API_KEY;
+    // Use v1 endpoint for MMR history
+    const response = await axios.get(
+      `https://api.henrikdev.xyz/valorant/v1/mmr-history/${region}/${name}/${tag}`,
+      { headers: { 'Authorization': apiKey || '' } }
+    );
+    return response.data.data as MMRHistoryPoint[];
+  } catch (error) {
+    console.warn(`⚠️ Could not fetch MMR History for ${name}#${tag}`);
+    return []; // Return empty array so chart just doesn't show, preventing crash
+  }
+}
 }

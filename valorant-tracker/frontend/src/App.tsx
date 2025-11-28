@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { getMatchHistory } from './api';
 import { MatchCard } from './components/MatchCard';
 import type { MatchData } from './types';
-
+import { MatchDetails } from './components/MatchDetails';
+import { getMatchHistory, getMMRHistory } from './api';
+import { MMRChart } from './components/MMRChart';
 // --- 1. Simple Popup Component ---
 const ErrorPopup = ({ message, onClose }: { message: string, onClose: () => void }) => (
   <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-sm">
@@ -42,7 +43,8 @@ function App() {
   const [showPopup, setShowPopup] = useState(false);
   const [popupMsg, setPopupMsg] = useState('');
   const [error, setError] = useState(''); // Keep this for generic errors
-
+  const [selectedMatch, setSelectedMatch] = useState<MatchData | null>(null);
+  const [mmrHistory, setMmrHistory] = useState([]);
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -51,11 +53,16 @@ function App() {
     setMatches([]);
 
     try {
-      const data = await getMatchHistory(name, tag, region);
-      setMatches(data);
+      const [matchesData, mmrData] = await Promise.all([
+            getMatchHistory(name, tag, region),
+            getMMRHistory(name, tag, region)
+        ]);
+        console.log("MMR Data:", mmrData);
+        setMatches(matchesData);
+        setMmrHistory(mmrData); // Set chart data
     } catch (err: any) {
       const errorMsg = err.response?.data?.error || 'Failed to fetch matches.';
-      
+  
       // --- 3. Check for specific backend message ---
       if (errorMsg === "NOT_ENOUGH_GAMES") {
         setPopupMsg("This player exists, but hasn't played enough recent games to be tracked. Please ask them to play a match!");
@@ -70,17 +77,18 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f1923] text-white p-6 md:p-12 font-sans selection:bg-red-500 selection:text-white relative">
+    <div className="min-h-screen bg-[#0f1923] text-white p-6 md:p-12 font-sans relative">
       
-      {/* --- 4. Render Popup if state is true --- */}
-      {showPopup && (
-        <ErrorPopup 
-          message={popupMsg} 
-          onClose={() => setShowPopup(false)} 
+      {/* 1. RENDER MATCH DETAILS MODAL */}
+      {selectedMatch && (
+        <MatchDetails 
+          match={selectedMatch} 
+          onClose={() => setSelectedMatch(null)} 
         />
       )}
 
-      <div className={`max-w-4xl mx-auto transition-opacity ${showPopup ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+      <div className={`max-w-4xl mx-auto ${selectedMatch || showPopup ? 'blur-sm pointer-events-none' : ''}`}> 
+         {/* Note: I added blur-sm above to make background look cool when modal is open */}
         
         <header className="mb-10 text-center">
             <h1 className="text-5xl font-extrabold text-[#ff4655] uppercase tracking-tighter mb-2">
@@ -131,10 +139,22 @@ function App() {
                 {error}
             </div>
         )}
-
+        
+        {/* MMR CHART - Only show if we have data */}
+        {mmrHistory.length > 0 && (
+            <div className="mb-8 animate-in slide-in-from-bottom-4 duration-500">
+                <MMRChart data={mmrHistory} />
+            </div>
+        )}
+        {/* Results List */}
         <div className="space-y-4">
             {matches.map((match, index) => (
-                <MatchCard key={index} match={match} playerName={name} />
+                <MatchCard 
+                  key={index} 
+                  match={match} 
+                  playerName={name}
+                  onClick={() => setSelectedMatch(match)} // <--- Pass the click handler
+                />
             ))}
         </div>
       </div>

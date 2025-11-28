@@ -12,6 +12,7 @@ export interface Player {
   team: 'Red' | 'Blue';
   character: string; 
   currenttier_patched: string; // Rank
+  currenttier: number;
   stats: PlayerStats;
   assets: {
     agent: {

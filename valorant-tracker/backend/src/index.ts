@@ -45,6 +45,17 @@ app.get('/api/rank/:region/:name/:tag', async (req, res) => {
   }
 });
 
+// 3. Get MMR History (The missing route)
+app.get('/api/mmr-history/:region/:name/:tag', async (req, res) => {
+  const { region, name, tag } = req.params;
+  try {
+    const history = await ValorantService.getMMRHistory(name, tag, region);
+    res.json(history);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch MMR history" });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

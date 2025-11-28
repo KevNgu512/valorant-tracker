@@ -9,7 +9,10 @@ export const getMatchHistory = async (name: string, tag: string, region: string)
     const response = await axios.get<MatchData[]>(`${API_URL}/matches/${region}/${name}/${tag}`);
     return response.data; 
 };
-
+export const getMMRHistory = async (name: string, tag: string, region: string) => {
+    const response = await axios.get(`${API_URL}/mmr-history/${region}/${name}/${tag}`);
+    return response.data;
+};
 export const getPlayerRank = async (name: string, tag: string) => {
     try {
         const response = await axios.get(`${API_URL}/rank/${name}/${tag}`);
