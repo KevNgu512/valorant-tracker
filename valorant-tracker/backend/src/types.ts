@@ -8,6 +8,7 @@ export interface PlayerStats {
   headshots: number;
   bodyshots: number;
   legshots: number;
+  damage_made: number;
 }
 
 export interface Player {

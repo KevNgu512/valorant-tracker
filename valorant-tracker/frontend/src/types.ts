@@ -3,6 +3,10 @@ export interface PlayerStats {
   kills: number;
   deaths: number;
   assists: number;
+  headshots: number;
+  bodyshots: number;
+  legshots: number;
+  damage_made: number;
 }
 
 export interface Player {
@@ -23,10 +27,16 @@ export interface Player {
 
 export interface MatchMetadata {
   map: string;
+  game_version: string;
+  game_length: number;
+  game_start: number;
   game_start_patched: string;
+  rounds_played: number;
   mode: string;
-  queue: string; // "Competitive", "Unrated"
+  queue: string;
+  cluster: string;
 }
+
 
 export interface MatchData {
   metadata: MatchMetadata;
